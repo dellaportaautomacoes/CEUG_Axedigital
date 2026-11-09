@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Axé Digital</title>
+<meta name="theme-color" content="#1f3d2b">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header>
+  <div class="brand"><b>Axé Digital</b><small>CEUG · a tecnologia a serviço da tradição</small></div>
+  <button id="btnDark" aria-label="Modo escuro">🌓</button>
+</header>
+<main id="view"></main>
+<nav>
+  <button data-tab="buscar" class="on">🔎<span>Buscar</span></button>
+  <button data-tab="cats">📚<span>Categorias</span></button>
+  <button data-tab="gira">🕯️<span>Gira de Hoje</span></button>
+  <button data-tab="favs">⭐<span>Favoritos</span></button>
+</nav>
+<div id="reader" hidden>
+  <div class="rbar">
+    <button id="rClose">← Voltar</button>
+    <span><button id="rMinus">A−</button><button id="rPlus">A+</button><button id="rFav">☆</button></span>
+  </div>
+  <div class="rbody"><p class="rpath" id="rPath"></p><h2 id="rTitle"></h2><pre id="rText"></pre></div>
+  <div class="rnav"><button id="rPrev">◀ Anterior</button><button id="rNext">Próximo ▶</button></div>
+</div>
+<script src="app.js"></script>
+</body>
+</html>
