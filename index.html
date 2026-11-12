@@ -13,7 +13,7 @@
 <body>
 <header>
   <div class="brand"><b>Axé Digital</b><small>CEUG · a tecnologia a serviço da tradição</small></div>
-  <button id="btnDark" aria-label="Modo escuro">🌓</button>
+  <span><button id="btnSrc" class="src">Só CEUG</button><button id="btnUser" aria-label="Conta e envio de pontos">👤</button><button id="btnDark" aria-label="Modo escuro">🌓</button></span>
 </header>
 <main id="view"></main>
 <nav>
@@ -21,6 +21,8 @@
   <button data-tab="cats">📚<span>Categorias</span></button>
   <button data-tab="gira">🕯️<span>Gira de Hoje</span></button>
   <button data-tab="favs">⭐<span>Favoritos</span></button>
+  <button data-tab="toques">🥁<span>Toques</span></button>
+  <button data-tab="inserir">➕<span>Inserir</span></button>
 </nav>
 <div id="reader" hidden>
   <div class="rbar">
@@ -30,6 +32,8 @@
   <div class="rbody"><p class="rpath" id="rPath"></p><h2 id="rTitle"></h2><pre id="rText"></pre></div>
   <div class="rnav"><button id="rPrev">◀ Anterior</button><button id="rNext">Próximo ▶</button></div>
 </div>
+<script src="lib/supabase.js"></script>
+<script src="config.js"></script>
 <script src="app.js"></script>
 </body>
 </html>

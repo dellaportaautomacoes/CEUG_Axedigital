@@ -28,3 +28,8 @@ h3{margin:16px 0 4px;color:var(--pri)}
 .rbody{flex:1;overflow:auto;padding:16px;max-width:760px;margin:0 auto;width:100%}
 .rpath{color:var(--mut);font-size:13px;margin:0}
 #rText{white-space:pre-wrap;font:inherit;font-size:var(--fs,22px);line-height:1.6;margin:0}
+
+header .src{font-size:12px;border:1px solid #f2c230;border-radius:99px;padding:4px 10px;color:#f2c230;margin-right:6px}
+.item i{color:var(--acc)}
+input,textarea,select{width:100%;padding:10px 12px;margin:5px 0;font:inherit;border:1px solid var(--bd);border-radius:10px;background:var(--card);color:var(--tx)}
+header button#btnUser{font-size:20px}
