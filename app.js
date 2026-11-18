@@ -125,7 +125,7 @@ function toques() {
 
 /* ---------- nuvem (Supabase): login, envio e aprovação ---------- */
 const sb = (window.supabase && window.AXE_CFG) ? window.supabase.createClient(window.AXE_CFG.url, window.AXE_CFG.key) : null;
-let user = null, papel = 'membro', meus = [], pend = [], msg = '';
+let user = null, papel = 'membro', meus = [], pend = [], convs = [], msg = '';
 const toPonto = r => {
   const g = (P.find(p => p.cat === r.cat && p.fonte !== 'recebido') || {}).grupo || 'Recebidos';
   const texto = r.texto, titulo = (r.titulo || texto.split('\n')[0]).slice(0, 70);
@@ -134,25 +134,26 @@ const toPonto = r => {
 };
 function mergeRec(rows) { P = P.filter(p => p.fonte !== 'recebido').concat((rows || []).map(toPonto)); }
 async function loadCloud() {
-  if (!sb || !user) { mergeRec([]); return; }
+  if (!sb) { mergeRec(store.get('rec', [])); return; }
   const a = await sb.from('pontos_enviados').select('*').eq('status', 'aprovado').order('id');
   if (!a.error) store.set('rec', a.data);
   mergeRec(a.error ? store.get('rec', []) : a.data);
+  if (!user) { meus = []; pend = []; convs = []; return; }
   const m = await sb.from('pontos_enviados').select('*').eq('user_id', user.id).order('id', { ascending: false });
   meus = m.data || [];
-  if (papel === 'admin') { const q = await sb.from('pontos_enviados').select('*').eq('status', 'pendente').order('id'); pend = q.data || []; }
+  if (papel === 'admin') { const q = await sb.from('pontos_enviados').select('*').eq('status', 'pendente').order('id'); pend = q.data || []; const cv = await sb.from('convites').select('*').order('criado_em'); convs = cv.data || []; }
 }
 async function setUser(u) {
   user = u || null; papel = 'membro';
   if (user) { const r = await sb.from('perfis').select('papel').eq('user_id', user.id).maybeSingle(); papel = (r.data || {}).papel || 'membro'; }
   await loadCloud(); $('#btnUser').textContent = user ? '👤✔' : '👤';
-  if (tab === 'inserir') render();
+  if (tab === 'inserir' || (tab === 'buscar' && !q)) render();
 }
 async function decidir(id, status) { await sb.from('pontos_enviados').update({ status }).eq('id', id); await loadCloud(); render(); }
 function inserir() {
   if (!sb) { view.innerHTML = '<p class="muted">Recurso indisponível (biblioteca não carregou).</p>'; return; }
   if (!user) {
-    view.innerHTML = `<h3>Entrar</h3><p class="muted">Entre para enviar pontos recebidos e ver os pontos aprovados pelos responsáveis.</p>
+    view.innerHTML = `<h3>Entrar</h3><p class="muted">Cadastro somente por convite: o responsável do CEUG cadastra seu e-mail, e depois você usa “Criar conta” com esse mesmo e-mail.</p>
     <input type="email" id="em" placeholder="e-mail"><input type="password" id="pw" placeholder="senha (mín. 6 caracteres)">
     <div class="chips"><button class="chip on" id="bIn">Entrar</button><button class="chip" id="bUp">Criar conta</button></div><p class="muted" id="mm">${esc(msg)}</p>`;
     const go = async fn => { msg = ''; const r = await fn($('#em').value.trim(), $('#pw').value); msg = r.error ? 'Erro: ' + r.error.message : (r.data.session ? '' : 'Conta criada. Confirme pelo e-mail que você recebeu e depois entre.'); $('#mm').textContent = msg; };
@@ -169,9 +170,14 @@ function inserir() {
   <input id="fE" placeholder="Entidade (opcional)"><input id="fA" placeholder="Recebido por (nome)">
   <select id="fP">${['ponto', 'chamada', 'louvação', 'subida', 'demanda', 'saudação', 'firmeza'].map(t => `<option>${t}</option>`).join('')}</select>
   <div class="chips"><button class="chip on" id="fS">Enviar para aprovação</button><button class="chip" id="bOut">Sair</button></div><p class="muted" id="mm">${esc(msg)}</p>
+  ${papel === 'admin' ? `<h3>Convidar membro</h3><p class="muted">Cadastre o e-mail; a pessoa então usa “Criar conta” na aba Inserir.</p><input id="cvE" type="email" placeholder="e-mail do membro"><div class="chips"><button class="chip on" id="cvB">Convidar</button></div>` + convs.map(c => `<div class="item" style="cursor:default"><div class="t"><b>${esc(c.email)}</b></div><button class="star" data-cv="${esc(c.email)}">🗑</button></div>`).join('') : ''}
   ${papel === 'admin' ? `<h3>Pendentes para aprovar (${pend.length})</h3>` + pend.map(r => `<div class="item" style="display:block;cursor:default"><b>${esc(r.titulo || r.texto.split('\n')[0])}</b><small>${esc(r.cat || '')} · ${esc(r.autor || '')}</small><pre style="white-space:pre-wrap;margin:6px 0">${esc(r.texto)}</pre><button class="chip on" data-ok="${r.id}">Aprovar</button> <button class="chip" data-no="${r.id}">Rejeitar</button></div>`).join('') : ''}
   <h3>Meus envios</h3>` + (meus.length ? meus.map(r => `<div class="item" style="cursor:default"><div class="t"><b>${esc(r.titulo || r.texto.split('\n')[0])}</b><small>${st[r.status]}</small></div></div>`).join('') : '<p class="muted">Nada enviado ainda.</p>');
   $('#bOut').onclick = () => sb.auth.signOut();
+  if (papel === 'admin') {
+    $('#cvB').onclick = async () => { const e = $('#cvE').value.trim().toLowerCase(); if (!e) return; const r = await sb.from('convites').insert({ email: e }); msg = r.error ? 'Erro: ' + r.error.message : 'Convidado: ' + e; await loadCloud(); render(); };
+    view.querySelectorAll('[data-cv]').forEach(b => b.onclick = async () => { await sb.from('convites').delete().eq('email', b.dataset.cv); await loadCloud(); render(); });
+  }
   $('#fS').onclick = async () => {
     const texto = $('#fX').value.trim(); if (!texto) { $('#mm').textContent = 'Escreva a letra do ponto.'; return; }
     const r = await sb.from('pontos_enviados').insert({ titulo: $('#fT').value.trim() || null, texto, cat: $('#fC').value.trim() || null, ent: $('#fE').value.trim() || null, autor: $('#fA').value.trim() || null, tipo: $('#fP').value });
