@@ -158,7 +158,7 @@ function inserir() {
     <div class="chips"><button class="chip on" id="bIn">Entrar</button><button class="chip" id="bUp">Criar conta</button></div><p class="muted" id="mm">${esc(msg)}</p>`;
     const go = async fn => { msg = ''; const r = await fn($('#em').value.trim(), $('#pw').value); msg = r.error ? 'Erro: ' + r.error.message : (r.data.session ? '' : 'Conta criada. Confirme pelo e-mail que você recebeu e depois entre.'); $('#mm').textContent = msg; };
     $('#bIn').onclick = () => go((email, password) => sb.auth.signInWithPassword({ email, password }));
-    $('#bUp').onclick = () => go((email, password) => sb.auth.signUp({ email, password }));
+    $('#bUp').onclick = () => go((email, password) => sb.auth.signUp({ email, password, options: { emailRedirectTo: location.origin + location.pathname } }));
     return;
   }
   const cats = [...new Set(P.map(p => p.cat))].sort();
